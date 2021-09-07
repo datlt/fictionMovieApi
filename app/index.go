@@ -8,7 +8,33 @@ import (
     "encoding/json"
     "github.com/julienschmidt/httprouter"
     "strconv"
+    "errors"
 )
+
+func Auth(w http.ResponseWriter, r *http.Request)(dbaccess.User, error){
+    //TODO save api_key in Redis
+    api_key, ok := r.URL.Query()["api_key"]
+    if(!ok || len(api_key) < 1) {
+        http.Error(w, http.StatusText(400), http.StatusBadRequest)
+        log.Println("dont have api key")
+        return dbaccess.User{}, errors.New("empty api_key")
+    }
+
+    users, err := dbaccess.GetUser(api_key[0])
+    if err != nil {
+        http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+        log.Println(err)
+        return dbaccess.User{}, err
+    }
+
+    if len(users) != 1 {
+        http.Error(w, http.StatusText(400), http.StatusBadRequest)
+        log.Println("Api key not found")
+        return dbaccess.User{}, errors.New("api_key not valid")
+    }
+
+    return users[0], nil
+}
 
 func queryAndReturnMovie(queryParam dbaccess.MovieQueryParam, w http.ResponseWriter){
     movies, err := dbaccess.QueryMovies(queryParam)
@@ -27,6 +53,10 @@ func queryAndReturnMovie(queryParam dbaccess.MovieQueryParam, w http.ResponseWri
 }
 
 func SearchMovies(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+    _, err := Auth(w, r)
+    if(err != nil){
+        return
+    }
     var queryParam = dbaccess.MovieQueryParam{}
     getParams := r.URL.Query()
 
@@ -62,6 +92,10 @@ func SearchMovies(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func GetMovie(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
+    _, err := Auth(w, r)
+    if(err != nil){
+        return
+    }
     id_string := ps.ByName("id")
     id, err := strconv.Atoi(id_string)
     if err != nil {
@@ -75,10 +109,55 @@ func GetMovie(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
     queryAndReturnMovie(queryParam, w)
 }
 
+func GetFavorites(w http.ResponseWriter, r *http.Request, _ httprouter.Params){
+    user, err := Auth(w, r)
+    if(err != nil){
+        return
+    }
+    var queryParam = dbaccess.MovieQueryParam{}
+    queryParam.User_id = user.ID
+
+    getParams := r.URL.Query()
+    page, ok := getParams["page"]
+    if ok && len(page) >= 1 {
+        page_num, err := strconv.Atoi(page[0])
+        if err == nil {
+            queryParam.Page = page_num
+        }
+    } 
+    queryAndReturnMovie(queryParam, w)
+}
+
+func AddFavorite(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
+    user, err := Auth(w, r)
+    if(err != nil){
+        return
+    }
+
+    id_string := ps.ByName("id")
+    id, err := strconv.Atoi(id_string)
+    if err != nil {
+        http.Error(w, http.StatusText(400), http.StatusBadRequest)
+        log.Println("Bad Request")
+        return
+    }
+
+    err = dbaccess.AddFavorite(user.ID, id) 
+    if err != nil {
+        http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+        return
+    } else {
+        fmt.Fprint(w, "Favorite Added")
+    }
+
+}
+
 func main() {
     router := httprouter.New()
 	router.GET("/movies", SearchMovies)
     router.GET("/movies/:id", GetMovie)
+    router.GET("/favorites", GetFavorites)
+    router.POST("/favorite/:id", AddFavorite)
 
     log.Println("Listening on port 3000")
 	log.Fatal(http.ListenAndServe(":3000", router))

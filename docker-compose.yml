@@ -1,6 +1,19 @@
 version: "3"
 
 services:
+    web:
+        build:
+            context: ./
+            dockerfile: Docker/Dockerfile
+        container_name: web
+        hostname: web
+        volumes:
+            - ./app:/app
+        ports:
+            - "3000:3000"
+        depends_on:
+            - postgres
+        command: go run index.go
     postgres:
         build:
             context: postgres/Docker

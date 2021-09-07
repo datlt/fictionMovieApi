@@ -59,3 +59,8 @@ insert into users(id,"name",email,is_active)
 values
 (1,'user 1', 'user1@example.com', true),
 (2,'user 2', 'user2@example.com', true);
+
+insert into api_key(api_key, user_id, expired_on)
+values
+('apiabc01','1', TO_TIMESTAMP('2030-01-01', 'YYYY-MM-DD HH:MI:SS')),
+('apiabc02','2', TO_TIMESTAMP('2030-01-01', 'YYYY-MM-DD HH:MI:SS'));

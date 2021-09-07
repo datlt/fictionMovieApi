@@ -8,7 +8,7 @@ LEFT JOIN genres on genres.id = movies_x_genres.genre_id
 LEFT JOIN actor_x_movie on actor_x_movie.movie_id = movies.id
 LEFT JOIN actors on actors.id = actor_x_movie.actor_id
 LEFT JOIN favorites on movies.id = favorites.movie_id
-{{if or .Id .Search .Movie_name .Actor .Genre -}}
+{{if or .Id .Search .Movie_name .Actor .Genre .User_id -}}
 WHERE
 	True
 	{{if .Id -}}
@@ -31,6 +31,9 @@ WHERE
 	{{- end}}
 	{{if .Genre -}}
 	AND genres.genres LIKE CONCAT('%',CAST(:genre AS TEXT),'%')
+	{{- end}}
+	{{if .User_id -}}
+	AND favorites.user_id = :user_id
 	{{- end}}
 {{- end}}
 GROUP BY (

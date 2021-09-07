@@ -5,7 +5,6 @@ import (
 	"text/template"
 	"bytes"
 	"os"
-	"fmt"
 )
 
 type MovieQueryParam struct {
@@ -17,6 +16,7 @@ type MovieQueryParam struct {
 	Limit    	int
 	Offset      int
 	Page      	int
+	User_id     int
 }
 
 func QueryMovies(queryParam MovieQueryParam) ([]Movie, error) {

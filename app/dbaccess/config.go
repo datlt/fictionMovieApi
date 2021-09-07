@@ -13,7 +13,7 @@ const (
     POSTGRES_USER =  "postgres"
     POSTGRES_PASSWORD = "postgres"
 	POSTGRES_PORT = "5432"
-	POSTGRES_HOST = "localhost"
+	POSTGRES_HOST = "postgres"
 )
 
 const (

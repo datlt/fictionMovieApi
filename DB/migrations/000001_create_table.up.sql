@@ -7,7 +7,7 @@ create table if not exists favorites (
 create table if not exists api_key (
   api_key varchar(200) not null,
   user_id integer not null,
-  expired_on time with time zone,
+  expired_on timestamp without time zone,
   constraint api_key_PKC primary key (api_key)
 ) ;
 
@@ -29,7 +29,7 @@ create table if not exists actor_x_movie (
 create table if not exists actors (
   id integer not null,
   name varchar(100),
-  birth_day time with time zone,
+  birth_day timestamp with time zone,
   nationality varchar(100),
   constraint actors_PKC primary key (id)
 ) ;
@@ -51,7 +51,7 @@ create table if not exists movies (
   name varchar(200),
   description text,
   writer varchar(200),
-  release_date time with time zone,
+  release_date timestamp with time zone,
   cover_img text,
   constraint movies_PKC primary key (id)
 ) ;
